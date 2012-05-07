@@ -1,6 +1,13 @@
 #' The Rorschach protocol.
 #'
+#' This protocol is used to calibrate the eyes for variation due to sampling.
+#' All plots are typically null data sets, data that is consistent with a null
+#' hypothesis. The protocol is described in Buja, Cook, Hofmann, Lawrence,
+#' Lee, Swayne, Wickham (2009) Statistical inference for exploratory data
+#' analysis and model diagnostics, Phil. Trans. R. Soc. A, 367, 4361-4383.
+#'
 #' @export
+#' @importFrom plyr rdply
 #' @param method method for generating null data sets
 #' @param true true data set. If \code{NULL}, \code{\link{find_plot_data}}
 #'   will attempt to extract it from the current ggplot2 plot.
@@ -14,7 +21,7 @@ rorschach <- function(method, true = NULL, n = 20, p = 0) {
     n <- n - 1
   }
 
-  samples <- plyr::rdply(n, method(true))
+  samples <- rdply(n, method(true))
   if (show_true) {
     pos <- sample(n + 1, 1)
     message(encrypt("True data in position ", pos))
@@ -25,6 +32,14 @@ rorschach <- function(method, true = NULL, n = 20, p = 0) {
 }
 
 #' The line-up protocol.
+#'
+#' In this protocol the plot of the real data is embedded amongst a field of
+#' plots of data generated to be consistent with some null hypothesis.
+#' If the observe can pick the real data as different from the others, this
+#' lends weight to the statistical significance of the structure in the plot.
+#' The protocol is described in Buja, Cook, Hofmann, Lawrence,
+#' Lee, Swayne, Wickham (2009) Statistical inference for exploratory data
+#' analysis and model diagnostics, Phil. Trans. R. Soc. A, 367, 4361-4383.
 #'
 #' Generate n - 1 null datasets and randomly position the true data.  If you
 #' pick the real data as being noticeably different, then you have formally
@@ -40,6 +55,7 @@ rorschach <- function(method, true = NULL, n = 20, p = 0) {
 #' @param samples samples generated under the null hypothesis. Only specify
 #'   this if you don't want lineup to generate the data for you.
 #' @export
+#' @importFrom plyr rdply
 #' @examples
 #' if (require("ggplot2")) {
 #' qplot(mpg, wt, data = mtcars) %+% 
@@ -52,7 +68,7 @@ lineup <- function(method, true = NULL, n = 20, pos = sample(n, 1), samples = NU
   true <- find_plot_data(true)
  
   if (is.null(samples)) {
-    samples <- plyr::rdply(n - 1, method(true))
+    samples <- rdply(n - 1, method(true))
   }
   if (missing(pos)) {
     message("decrypt(\"", encrypt("True data in position ", pos), "\")")

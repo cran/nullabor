@@ -1,16 +1,17 @@
 Package: nullabor
-Type: Package
+Version: 0.2
+Description: Generate null datasets and null plots with ease.
 Title: Tools for graphical inference
-Version: 0.1
 Author: Hadley Wickham <h.wickham@gmail.com>
 Maintainer: Hadley Wickham <h.wickham@gmail.com>
-Description: Generate null datasets and null plots with ease.
-Imports: MASS, ggplot2, plyr
 License: GPL
-LazyLoad: false
+Imports: MASS, ggplot2, plyr
+Suggests: reshape2
 LazyData: true
+Type: Package
+LazyLoad: false
 Collate: 'encryption.r' 'lal.r' 'method-dist.r' 'method-model.r'
         'method-permute.r' 'protocols.r'
-Packaged: 2011-03-01 15:15:19 UTC; hadley
+Packaged: 2012-05-07 21:30:28 UTC; hadley
 Repository: CRAN
-Date/Publication: 2011-03-01 15:51:05
+Date/Publication: 2012-05-08 04:07:03

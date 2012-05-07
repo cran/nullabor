@@ -1,13 +1,10 @@
+\docType{data}
 \name{lal}
 \alias{lal}
 \title{Los Angeles Lakers play-by-play data.}
-
 \description{
-  Los Angeles Lakers play-by-play data.
+  Play by play data from all games played by the Los
+  Angeles lakers in the 2008/2009 season.
 }
+\keyword{datasets}
 
-\details{
-  Play by play data from the 28/10/2008 basketball game of
-  the Los Angeles Lakers vs. the Portland Trail Blazers.
-}
-\docType{data}

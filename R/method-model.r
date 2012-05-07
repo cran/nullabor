@@ -8,18 +8,20 @@
 #' @param method method for generating null residuals.  Built in methods
 #'   "rotate", "pboot" and "boot" are defined by \code{\link{resid_rotate}},
 #'   \code{\link{resid_pboot}} and \code{\link{resid_boot}} respectively
+#' @param ... other arguments passedd onto \code{method}.
 #' @return a function that given \code{data} generates a null data set.  
 #'   For use with \code{\link{lineup}} or \code{\link{rorschach}}
 #' @export
 #' @examples
-#' library(ggplot2)
+#' if (require("ggplot2") && require("reshape2")) {
 #'
 #' x <- lm(tip ~ total_bill, data = tips)
 #' tips.reg <- data.frame(tips, .resid = residuals(x), .fitted = fitted(x))
 #' qplot(total_bill, .resid, data = tips.reg) %+% 
 #'   lineup(null_lm(tip ~ total_bill, method = "rotate"), tips.reg) + 
 #'   facet_wrap(~ .sample)
-null_lm <- function(f, method = "rotate") {
+#' }
+null_lm <- function(f, method = "rotate", ...) {
   if (is.character(method)) {
     method <- match.fun(paste("resid", method, sep = "_"))
   }
@@ -27,7 +29,7 @@ null_lm <- function(f, method = "rotate") {
     model <- eval(substitute(lm(formula, data = df), list(formula = f)))
     resp_var <- all.vars(f[[2]])
     
-    resid <- method(model, df)
+    resid <- method(model, df, ...)
     fitted <- predict(model, df)
     df[".resid"] <- resid
     df[".fitted"] <- fitted
@@ -64,6 +66,18 @@ resid_rotate <- function(model, data) {
 #' @export
 resid_pboot <- function(model, data) {
   rnorm(n = n(model), sd = sqrt(sigma(model)))  
+}
+
+#' Residuals simulated by a normal model, with specified sigma
+#'
+#' For use with \code{\link{null_lm}}
+#'
+#' @param model to extract residuals from
+#' @param data used to fit model
+#' @param sigma, a specific sigma to model
+#' @export
+resid_sigma <- function(model, data, sigma=1) {
+  rnorm(n = n(model), sd = sigma)  
 }
 
 #' Bootstrap residuals.
