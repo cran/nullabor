@@ -2,8 +2,10 @@
 library(knitr)
 opts_chunk$set(out.extra='style="display:block; margin: auto"', fig.align="center")
 
-## ------------------------------------------------------------------------
+## ----message=FALSE-------------------------------------------------------
 library(nullabor)
+library(ggplot2)
+library(dplyr)
 
 ## ------------------------------------------------------------------------
 d <- lineup(null_permute("mpg"), mtcars)
@@ -43,16 +45,13 @@ with(mtcars, sep_dist(data.frame(wt, mpg,  as.numeric(as.factor(mtcars$cyl))), d
 with(mtcars, bin_dist(data.frame(wt, mpg), data.frame(sample(wt), mpg), lineup.dat = NULL, X.bin = 5, Y.bin = 5))
 
 ## ------------------------------------------------------------------------
-library(dplyr)
 calc_mean_dist(lineup(null_permute('mpg'), mtcars, pos = 10), var = c('mpg', 'wt'), met = 'reg_dist', pos = 10)
 
 ## ------------------------------------------------------------------------
 calc_diff(lineup(null_permute('mpg'), mtcars, pos = 10), var = c('mpg', 'wt'), met = 'reg_dist', dist.arg = NULL, pos = 10)
 
 ## ----, fig.height = 5, fig.width = 5.5-----------------------------------
-library(ggplot2)
-opt.diff <- opt_bin_diff(lineup(null_permute('mpg'), mtcars, pos = 10), var = c('mpg', 'wt'), 2, 10, 2, 10, pos = 10, plot = TRUE)
-head(opt.diff$dat)
+opt.diff <- opt_bin_diff(lineup(null_permute('mpg'), mtcars, pos = 10), var = c('mpg', 'wt'), 2, 4, 2, 4, pos = 10, plot = TRUE)
 opt.diff$p
 
 ## ----, fig.height = 10, fig.width = 11-----------------------------------
@@ -64,9 +63,7 @@ qplot(mpg, wt, data = lineup.dat, geom = 'point') + facet_wrap(~ .sample)
 #[1] 'True data in position 10' # Use pos = 10
 
 ## ----, message = FALSE---------------------------------------------------
-library(dplyr)
 dist.vals <- distmet(lineup.dat, var = c('mpg', 'wt'),'reg_dist', null_permute('mpg'), pos = 10, repl = 100, dist.arg = NULL) 
-
 
 ## ------------------------------------------------------------------------
 head(dist.vals$lineup)
@@ -77,7 +74,6 @@ dist.vals$pos
 
 ## ----, message = FALSE---------------------------------------------------
 dist.vals <- distmet(lineup.dat, var = c('mpg', 'wt'),'bin_dist', null_permute('mpg'), pos = 10, repl = 100, dist.arg = list(lineup.dat = lineup.dat, X.bin = 5, Y.bin = 5)) 
-
 
 ## ----, fig.height = 5, fig.width = 5.5-----------------------------------
 distplot(dist.vals)

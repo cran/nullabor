@@ -15,10 +15,11 @@ The permutation distribution of the distance measure is plotted with the distanc
 the null plots. Distance measure values for the null plots and the true plot are overlaid.
 }
 \examples{
-if(require('dplyr')){
-d <- lineup(null_permute('mpg'), mtcars, pos = 1)
-qplot(mpg, wt, data=d) + facet_wrap(~.sample)
-distplot(distmet(d, var = c('mpg', 'wt'), 'reg_dist', null_permute('mpg'),
-pos = 1, repl = 100, m = 8), m = 8) }
+if (require('dplyr')) {
+  d <- lineup(null_permute('mpg'), mtcars, pos = 1)
+  qplot(mpg, wt, data=d) + facet_wrap(~.sample)
+  distplot(distmet(d, var = c('mpg', 'wt'), 'reg_dist', null_permute('mpg'),
+    pos = 1, repl = 100, m = 8), m = 8)
+}
 }
 
