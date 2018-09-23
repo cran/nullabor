@@ -12,19 +12,31 @@
 #'   will attempt to extract it from the current ggplot2 plot.
 #' @param n total number of samples to generate (including true data)
 #' @param p probability of including true data with null data.
+#' @importFrom purrr rerun
+#' @importFrom tidyr unnest
+#' @importFrom tibble tibble
+#' @importFrom stats rbinom
 rorschach <- function(method, true = NULL, n = 20, p = 0) {
+    data <- NULL
     true <- find_plot_data(true)
-    show_true <- rbinom(1, 1, p) == 1
+    show_true <- stats::rbinom(1, 1, p) == 1
 
     if (show_true) {
         n <- n - 1
     }
+    samples <- tibble(
+      .n = seq_len(n),
+      data = purrr::rerun(n, method(true)))
+    samples <- data.frame(tidyr::unnest(samples, data))
+#        samples <- plyr::rdply(n, method(true))
 
-    samples <- plyr::rdply(n, method(true))
     if (show_true) {
         pos <- sample(n + 1, 1)
-        message(encrypt("True data in position ", pos))
+        message(encrypt("True data in position ", pos+10))
         samples <- add_true(samples, true, pos)
+    } else {
+      samples$.sample <- samples$.n
+      samples$.n <- NULL
     }
 
     samples
@@ -53,23 +65,29 @@ rorschach <- function(method, true = NULL, n = 20, p = 0) {
 #'   \code{\link{decrypt}} to understand.
 #' @param samples samples generated under the null hypothesis. Only specify
 #'   this if you don't want lineup to generate the data for you.
+#' @importFrom tibble tibble
 #' @export
 #' @examples
-#' if (require('ggplot2')) {
-#' qplot(mpg, wt, data = mtcars) %+%
-#'   lineup(null_permute('mpg'), mtcars) +
+#' library(ggplot2)
+#' ggplot(lineup(null_permute('mpg'), mtcars), aes(mpg, wt)) +
+#'   geom_point() +
 #'   facet_wrap(~ .sample)
-#' qplot(mpg, .sample, data = lineup(null_permute('cyl'), mtcars),
-#'   colour = factor(cyl))
-#' }
+#' ggplot(lineup(null_permute('cyl'), mtcars),
+#'        aes(mpg, .sample, colour = factor(cyl))) +
+#'        geom_point()
 lineup <- function(method, true = NULL, n = 20, pos = sample(n, 1), samples = NULL) {
+    data <- NULL
     true <- find_plot_data(true)
 
     if (is.null(samples)) {
-        samples <- plyr::rdply(n - 1, method(true))
+      samples <- tibble(
+        .n = seq_len(n-1),
+        data = purrr::rerun(n-1, method(true)))
+      samples <- data.frame(tidyr::unnest(samples, data))
+#      samples <- plyr::rdply(n - 1, method(true))
     }
     if (missing(pos)) {
-        message("decrypt(\"", encrypt("True data in position ", pos), "\")")
+        message("decrypt(\"", encrypt("True data in position ", pos+10), "\")")
     }
     add_true(samples, true, pos)
 }
@@ -81,7 +99,7 @@ add_true <- function(samples, true, pos) {
     samples$.n <- NULL
     true$.sample <- pos
 
-    all <- plyr::rbind.fill(samples, true)
+    all <- dplyr::bind_rows(samples, true)
     attr(all, "pos") <- pos
     all[order(all$.sample), ]
 }

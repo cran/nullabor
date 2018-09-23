@@ -12,16 +12,20 @@
 #' @return a function that given \code{data} generates a null data set.
 #'   For use with \code{\link{lineup}} or \code{\link{rorschach}}
 #' @export
+#' @importFrom stats lm predict
+#' @seealso null_permute, null_dist
 #' @examples
 #' if (requireNamespace('reshape2', quietly = TRUE)) {
 #' data("tips", package = "reshape2")
 #' x <- lm(tip ~ total_bill, data = tips)
 #' tips.reg <- data.frame(tips, .resid = residuals(x), .fitted = fitted(x))
-#' qplot(total_bill, .resid, data = tips.reg) %+%
-#'   lineup(null_lm(tip ~ total_bill, method = 'rotate'), tips.reg) +
+#' library(ggplot2)
+#' ggplot(lineup(null_lm(tip ~ total_bill, method = 'rotate'), tips.reg)) +
+#'   geom_point(aes(x = total_bill, y = .resid)) +
 #'   facet_wrap(~ .sample)
 #' }
 null_lm <- function(f, method = "rotate", ...) {
+  n <- NULL
     if (is.character(method)) {
         method <- match.fun(paste("resid", method, sep = "_"))
     }
@@ -30,7 +34,7 @@ null_lm <- function(f, method = "rotate", ...) {
         resp_var <- all.vars(f[[2]])
 
         resid <- method(model, df, ...)
-        fitted <- predict(model, df)
+        fitted <- stats::predict(model, df)
         df[".resid"] <- resid
         df[".fitted"] <- fitted
         df[[resp_var]] <- fitted + resid
@@ -39,9 +43,9 @@ null_lm <- function(f, method = "rotate", ...) {
 }
 
 # Extractor methods
-rss <- function(model) sum(resid(model)^2)
+rss <- function(model) sum(stats::resid(model)^2)
 sigma <- function(model) summary(model)$sigma
-n <- function(model) length(resid(model))
+n <- function(model) length(stats::resid(model))
 
 #' Rotation residuals.
 #'
@@ -49,12 +53,13 @@ n <- function(model) length(resid(model))
 #'
 #' @param model to extract residuals from
 #' @param data used to fit model
+#' @importFrom stats update
 #' @export
 resid_rotate <- function(model, data) {
-    data[names(model$model)[1]] <- rnorm(nrow(data))
+    data[names(model$model)[1]] <- stats::rnorm(nrow(data))
 
-    rmodel <- update(model, data = data)
-    resid(rmodel) * sqrt(rss(model)/rss(rmodel))
+    rmodel <- stats::update(model, data = data)
+    stats::resid(rmodel) * sqrt(rss(model)/rss(rmodel))
 }
 
 #' Parametric bootstrap residuals.
@@ -65,7 +70,7 @@ resid_rotate <- function(model, data) {
 #' @param data used to fit model
 #' @export
 resid_pboot <- function(model, data) {
-    rnorm(n = n(model), sd = sqrt(sigma(model)))
+  stats::rnorm(n = length(model$residuals), sd = sigma(model))
 }
 
 #' Residuals simulated by a normal model, with specified sigma
@@ -75,9 +80,10 @@ resid_pboot <- function(model, data) {
 #' @param model to extract residuals from
 #' @param data used to fit model
 #' @param sigma, a specific sigma to model
+#' @importFrom stats rnorm
 #' @export
 resid_sigma <- function(model, data, sigma = 1) {
-    rnorm(n = n(model), sd = sigma)
+  stats::rnorm(n = n(model), sd = sigma)
 }
 
 #' Bootstrap residuals.
@@ -86,7 +92,8 @@ resid_sigma <- function(model, data, sigma = 1) {
 #'
 #' @param model to extract residuals from
 #' @param data used to fit model
+#' @importFrom stats resid
 #' @export
 resid_boot <- function(model, data) {
-    sample(resid(model))
+    sample(stats::resid(model))
 }

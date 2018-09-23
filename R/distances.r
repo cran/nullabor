@@ -14,24 +14,33 @@
 #' the explanatory variable and the second column giving the response
 #' variable
 #' @param nbins number of bins on the x-direction, by default nbins = 1
+#' @param intercept include the distances between intercepts?
+#' @param scale logical value: should the variables be scaled before computing regression coefficients?
 #' @return distance between X and PX
+#' @importFrom stats dist
+#' @importFrom magrittr %>%
+#' @importFrom dplyr do
 #' @export
 #' @examples with(mtcars, reg_dist(data.frame(wt, mpg), data.frame(sample(wt), mpg)))
-reg_dist <- function(X, PX, nbins = 1) {
-    ss <- seq(min(X[, 1]), max(X[, 1]), length = nbins + 1)
-    beta.X <- NULL
-    beta.PX <- NULL
-    for (k in 1:nbins) {
-        X.sub <- subset(X, X[, 1] >= ss[k] & X[, 1] <= ss[k + 1])
-        PX.sub <- subset(PX, X[, 1] >= ss[k] & X[, 1] <= ss[k + 1])
-        b.X <- as.numeric(coef(lm(X.sub[, 2] ~ X.sub[, 1])))
-        b.PX <- as.numeric(coef(lm(PX.sub[, 2] ~ PX.sub[, 1])))
-        beta.X <- rbind(beta.X, b.X)
-        beta.PX <- rbind(beta.PX, b.PX)
-    }
-    beta.X <- subset(beta.X, !is.na(beta.X[, 2]))
-    beta.PX <- subset(beta.PX, !is.na(beta.PX[, 2]))
-    sum((beta.X[, 1] - beta.PX[, 1])^2 + (beta.X[, 2] - beta.PX[, 2])^2)
+reg_dist <- function(X, PX, nbins = 1, intercept=TRUE, scale=TRUE) {
+  .group <- NULL
+  . <- NULL
+  dc <- function(dX) {
+    if (scale) dX <- data.frame(scale(dX))
+    dX$.group <- 1
+    if (nbins > 1) dX$.group <- cut(dX[,1], breaks=nbins)
+    dX$.y <- dX[,2]
+    dX$.x <- dX[,1]
+
+    group_by(dX, .group) %>% do(data.frame(rbind(stats::coef(stats::lm(.y~.x, data=.)))))
+  }
+
+  beta.X <- dc(X)
+  beta.PX <- dc(PX)
+  if (intercept)
+    return(sum((beta.X[,-1] - beta.PX[,-1])^2))
+  else
+    return(sum((beta.X[,3] - beta.PX[,3])^2))
 }
 
 #' Binned Distance
@@ -53,44 +62,30 @@ reg_dist <- function(X, PX, nbins = 1) {
 #' @export
 #' @examples with(mtcars, bin_dist(data.frame(wt, mpg), data.frame(sample(wt), mpg),
 #' lineup.dat = NULL))
-bin_dist <- function(X, PX, lineup.dat = lineup.dat, X.bin = 5, Y.bin = 5) {
-    if (!is.null(lineup.dat)) {
-        if (!is.numeric(X[, 1])) {
-            X[, 1] <- as.numeric(X[, 1])
-            nij <- as.numeric(table(cut(X[, 1], breaks = seq(min(X[, 1]), max(X[, 1]), length.out = length(unique(X[,
-                1])) + 1), include.lowest = TRUE), cut(X[, 2], breaks = seq(min(lineup.dat[, 2]), max(lineup.dat[,
-                2]), length.out = Y.bin + 1), include.lowest = TRUE)))
-        } else nij <- as.numeric(table(cut(X[, 1], breaks = seq(min(lineup.dat[, 1]), max(lineup.dat[,
-            1]), length.out = X.bin + 1), include.lowest = TRUE), cut(X[, 2], breaks = seq(min(lineup.dat[,
-            2]), max(lineup.dat[, 2]), length.out = Y.bin + 1), include.lowest = TRUE)))
-        if (!is.numeric(PX[, 1])) {
-            PX[, 1] <- as.numeric(PX[, 1])
-            mij <- as.numeric(table(cut(PX[, 1], breaks = seq(min(X[, 1]), max(X[, 1]), length.out = length(unique(X[,
-                1])) + 1), include.lowest = TRUE), cut(PX[, 2], breaks = seq(min(lineup.dat[, 2]), max(lineup.dat[,
-                2]), length.out = Y.bin + 1), include.lowest = TRUE)))
-        } else mij <- as.numeric(table(cut(PX[, 1], breaks = seq(min(lineup.dat[, 1]), max(lineup.dat[,
-            1]), length.out = X.bin + 1), include.lowest = TRUE), cut(PX[, 2], breaks = seq(min(lineup.dat[,
-            2]), max(lineup.dat[, 2]), length.out = Y.bin + 1), include.lowest = TRUE)))
-    } else if (is.null(lineup.dat)) {
-        if (!is.numeric(X[, 1])) {
-            X[, 1] <- as.numeric(X[, 1])
-            nij <- as.numeric(table(cut(X[, 1], breaks = seq(min(X[, 1]), max(X[, 1]), length.out = length(unique(X[,
-                1])) + 1), include.lowest = TRUE), cut(X[, 2], breaks = seq(min(X[, 2]), max(X[, 2]),
-                length.out = Y.bin + 1), include.lowest = TRUE)))
-        } else nij <- as.numeric(table(cut(X[, 1], breaks = seq(min(X[, 1]), max(X[, 1]), length.out = X.bin +
-            1), include.lowest = TRUE), cut(X[, 2], breaks = seq(min(X[, 2]), max(X[, 2]), length.out = Y.bin +
-            1), include.lowest = TRUE)))
-        if (!is.numeric(PX[, 1])) {
-            PX[, 1] <- as.numeric(PX[, 1])
-            mij <- as.numeric(table(cut(PX[, 1], breaks = seq(min(X[, 1]), max(X[, 1]), length.out = length(unique(X[,
-                1])) + 1), include.lowest = TRUE), cut(PX[, 2], breaks = seq(min(lineup.dat[, 2]), max(lineup.dat[,
-                2]), length.out = Y.bin + 1), include.lowest = TRUE)))
-        } else mij <- as.numeric(table(cut(PX[, 1], breaks = seq(min(PX[, 1]), max(PX[, 1]), length.out = X.bin +
-            1), include.lowest = TRUE), cut(PX[, 2], breaks = seq(min(PX[, 2]), max(PX[, 2]), length.out = Y.bin +
-            1), include.lowest = TRUE)))
-    }
-    sqrt(sum((nij - mij)^2))
+bin_dist <- function (X, PX, lineup.dat = lineup.dat, X.bin = 5, Y.bin = 5)
+{
+  # determine cutoff points - if lineup.dat is provided, use overall cutoff points:
+  bin2d <- function(dX) {
+    if (is.null(range1)) range1 <- range(as.numeric(dX[, 1]))
+    if (is.null(range2)) range2 <- range(as.numeric(dX[, 2]))
+
+    breaks1 <- seq(range1[1], range1[2], length.out=X.bin+1)
+    breaks2 <- seq(range2[1], range2[2], length.out=Y.bin+1)
+    as.numeric(table(cut(as.numeric(dX[,1]), breaks=breaks1, include.lowest=TRUE),
+                     cut(dX[,2], breaks=breaks2, include.lowest=TRUE)))
+  }
+
+  range1 <- range2 <- NULL
+  if (!is.null(lineup.dat)) {
+    range1 <- range(as.numeric(lineup.dat[, 1]))
+    range2 <- range(as.numeric(lineup.dat[, 2]))
+  }
+
+  if (!is.numeric(X[,1])) X.bin <- length(unique(X[,1]))
+
+  sqrt(sum( (bin2d(X) - bin2d(PX))^2 ))
 }
+
 #' Distance for univariate data
 #'
 #' The first four moments is calculated for data X and data PX. An euclidean distance
@@ -101,31 +96,34 @@ bin_dist <- function(X, PX, lineup.dat = lineup.dat, X.bin = 5, Y.bin = 5) {
 #' @return distance between X and PX
 #' @export
 #' @import moments
+#' @importFrom stats sd
 #' @examples if(require('moments')){uni_dist(rnorm(100), rpois(100, 2))}
 uni_dist <- function(X, PX) {
     if (is.data.frame(X) & is.data.frame(PX)) {
         xx <- X[, 1]
         yy <- PX[, 1]
-    } else if (is.data.frame(X) & !is.data.frame(PX)) {
+    } else if (is.data.frame(X) && !is.data.frame(PX)) {
         xx <- X[, 1]
         yy <- PX
-    } else if (!is.data.frame(X) & is.data.frame(PX)) {
+    } else if (!is.data.frame(X) && is.data.frame(PX)) {
         xx <- X
         yy <- PX[, 1]
     } else {
         xx <- X
         yy <- PX
     }
-    stat.xx <- c(mean(xx), sd(xx), skewness(xx), kurtosis(xx))
-    stat.yy <- c(mean(yy), sd(yy), skewness(yy), kurtosis(yy))
+    stat.xx <- c(mean(xx), stats::sd(xx), skewness(xx), kurtosis(xx))
+    stat.yy <- c(mean(yy), stats::sd(yy), skewness(yy), kurtosis(yy))
     sqrt(sum((stat.xx - stat.yy)^2))
 }
 
-#' Distance based on side by side Boxplots for two levels
+#' Distance based on side by side Boxplots
 #'
-#' Assuming there are only two groups, the first quartile, median and third quartile
-#' is calculated for each group of data X. The absolute difference between these
-#' statistics between the two groups are then calculated. Same is done for data PX.
+#' Assuming that data set X consists of a categorical group variable a numeric value,
+#' a summary of the first quartile, median and third quartile of this value is calculated
+#' for each group.
+#' The extent (as absolute difference) of the minimum and maximum value across groups is computed for
+#' first quartile, median and third quartile. Same is done for data PX.
 #' Finally an euclidean distance is calculated between the absolute differences of
 #' X and PX.
 #'
@@ -136,34 +134,39 @@ uni_dist <- function(X, PX) {
 #' @return distance between X and PX
 #' @importFrom dplyr summarise group_by
 #' @export
-#' @examples if(require('dplyr')) {with(mtcars, box_dist(data.frame(as.factor(am), mpg),
-#' data.frame(as.factor(sample(am)), mpg)))}
+#' @importFrom stats resid quantile
+#' @examples
+#' if(require('dplyr')) {
+#'   with(mtcars,
+#'     box_dist(data.frame(as.factor(am), mpg),
+#'     data.frame(as.factor(sample(am)), mpg))
+#'   )
+#' }
 box_dist <- function(X, PX) {
-	val <- group <- NULL
-    if (!is.factor(X[, 1]) & !is.factor(X[, 2])) {
-        stop("X should have one factor variable \n \n")
-    } else if (is.factor(X[, 1])) {
-        X$group <- X[, 1]
-        X$val <- X[, 2]
-        X.sum <- summarise(group_by(X, group), q1 = quantile(val, 0.25), q2 = quantile(val, 0.5), q3 = quantile(val,0.75))
-    } else if (is.factor(X[, 2])) {
-        X$group <- X[, 2]
-        X$val <- X[, 1]
-        X.sum <- summarise(group_by(X, group), q1 = quantile(val, 0.25), q2 = quantile(val, 0.5), q3 = quantile(val,0.75))
-    }
-    if (!is.factor(PX[, 1]) & !is.factor(PX[, 2])) {
-        stop("PX should have one factor variable \n \n")
-    } else if (is.factor(PX[, 1])) {
-        PX$group <- PX[, 1]
-        PX$val <- PX[, 2]
-        PX.sum <- summarise(group_by(PX, group), q1 = quantile(val, 0.25), q2 = quantile(val, 0.5), q3 = quantile(val,0.75))
-    } else {
-        PX$group <- PX[, 2]
-        PX$val <- PX[, 1]
-        PX.sum <- summarise(group_by(PX, group), q1 = quantile(val, 0.25), q2 = quantile(val, 0.5), q3 = quantile(val,0.75))    }
-    abs.diff.X <- with(X.sum, abs(as.numeric(X.sum[group == levels(group)[1], ])[2:4] - as.numeric(X.sum[group == levels(group)[2], ])[2:4]))
-    abs.diff.PX <- with(PX.sum, abs(as.numeric(PX.sum[group == levels(group)[1], ])[2:4] - as.numeric(PX.sum[group == levels(group)[2], ])[2:4]))
-    sqrt(sum((abs.diff.X - abs.diff.PX)^2))
+	find_factor <- function(dframe) {
+	  isfactor <- c(is.factor(dframe[,1]), is.factor(dframe[,2]))
+	  if (sum(isfactor) != 1) stop("data must have exactly one factor variable\n\n")
+	  isfactor
+	}
+
+	dq <- function(dX) {
+	  .group <- NULL
+	  .val <- NULL
+
+	  # compute absolute difference between min and max of each statistic
+	  Xfactor <- find_factor(dX)
+	  if (length(Xfactor) > 2) stop("Dataset cannot not have more than one categorical and one continuous data.\n\n")
+	  dX$.group <- dX[, Xfactor]
+	  dX$.val <- dX[, !Xfactor]
+	  X.sum <- summarise(group_by(dX, .group), q1 = stats::quantile(.val, 0.25), q2 = stats::quantile(.val, 0.5), q3 = quantile(.val,0.75))
+	  unlist(lapply(X.sum[,-1], function(x) abs(diff(range(x)))))
+	}
+
+	abs.diff.X <- dq(X)
+	abs.diff.PX <- dq(PX)
+
+
+  sqrt(sum((abs.diff.X - abs.diff.PX)^2))
 }
 
 
@@ -182,30 +185,35 @@ box_dist <- function(X, PX) {
 #' providing the dataset
 #' @param clustering LOGICAL; if TRUE, the third column is used as the
 #' clustering variable, by default FALSE
-#' @param nclust the number of clusters to be obtained by hierarchial
+#' @param nclust the number of clusters to be obtained by hierarchical
 #' clustering, by default nclust = 3
+#' @param type character string to specify which measure to use for distance, see ?cluster.stats for details
 #' @return distance between X and PX
 #' @export
 #' @import fpc
-#' @examples if(require('fpc')) { with(mtcars, sep_dist(data.frame(wt, mpg,
-#' as.numeric(as.factor(mtcars$cyl))), data.frame(sample(wt), mpg,
-#' as.numeric(as.factor(mtcars$cyl))), clustering = TRUE))}
-#' @examples if(require('fpc')) { with(mtcars, sep_dist(data.frame(wt, mpg,
-#' as.numeric(as.factor(mtcars$cyl))), data.frame(sample(wt), mpg,
-#' as.numeric(as.factor(mtcars$cyl))), nclustering = 3))}
-sep_dist <- function(X, PX, clustering = FALSE, nclust = 3) {
-    dX <- dist(X[, 1:2])
-    dPX <- dist(PX[, 1:2])
+#' @importFrom stats cutree hclust
+#' @examples
+#' if(require('fpc')) {
+#' with(mtcars, sep_dist(data.frame(wt, mpg, as.numeric(as.factor(mtcars$cyl))),
+#'               data.frame(sample(wt), mpg, as.numeric(as.factor(mtcars$cyl))),
+#'               clustering = TRUE))
+#'}
+#'
+#'if (require('fpc')) {
+#'with(mtcars, sep_dist(data.frame(wt, mpg, as.numeric(as.factor(mtcars$cyl))),
+#'              data.frame(sample(wt), mpg, as.numeric(as.factor(mtcars$cyl))),
+#'              nclust = 3))
+#'}
+sep_dist <- function(X, PX, clustering = FALSE, nclust = 3, type="separation") {
+  cl_dist <- function(Y) {
+    dY <- stats::dist(Y[, 1:2])
     if (clustering) {
-        X$cl <- X[, 3]
-        PX$cl <- PX[, 3]
-        X.clus <- cluster.stats(dX, clustering = X$cl)$separation
-        PX.clus <- cluster.stats(dPX, clustering = PX$cl)$separation
+      Y$cl <- Y[, 3]
     } else {
-        complete.X <- cutree(hclust(dX), nclust)
-        complete.PX <- cutree(hclust(dPX), nclust)
-        X.clus <- cluster.stats(dX, complete.X)$separation
-        PX.clus <- cluster.stats(dPX, complete.PX)$separation
+      Y$cl <- stats::cutree(stats::hclust(dY), nclust)
     }
-    sqrt(sum((X.clus - PX.clus)^2))
+    cluster.stats(dY, clustering = Y$cl)[[type]]
+  }
+
+  sqrt(sum((cl_dist(X) - cl_dist(PX))^2))
 }
