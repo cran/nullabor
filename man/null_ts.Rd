@@ -10,8 +10,6 @@ null_ts(var, modelfn)
 \item{var}{variable to model as a time series}
 
 \item{modelfn}{method for simulating from ts model.}
-
-\item{...}{other arguments passed onto \code{modelfn}.}
 }
 \value{
 a function that given \code{data} generates a null data set.
@@ -22,7 +20,8 @@ Null hypothesis: data follows a time series model using auto.arima from the fore
 }
 \examples{
 require(forecast)
-require(tidyverse)
+require(ggplot2)
+require(dplyr)
 data(aud)
 l <- lineup(null_ts("rate", auto.arima), aud)
 ggplot(l, aes(x=date, y=rate)) + geom_line() +
