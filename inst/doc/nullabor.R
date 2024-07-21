@@ -13,10 +13,10 @@ head(d)
 # Position of actual data plot
 attr(d, "pos")
 
-## ---- fig.height = 10, fig.width = 11-----------------------------------------
+## ----fig.height = 10, fig.width = 11------------------------------------------
 ggplot(data=d, aes(x=mpg, y=wt)) + geom_point() + facet_wrap(~ .sample)
 
-## ---- fig.height = 10, fig.width = 11-----------------------------------------
+## ----fig.height = 10, fig.width = 11------------------------------------------
 d <- rorschach(null_permute("mpg"), mtcars, n = 20, p = 0)
 ggplot(data=d, aes(x=mpg, y=wt)) + geom_point() + facet_wrap(~ .sample)
 

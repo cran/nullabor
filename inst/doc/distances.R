@@ -28,11 +28,11 @@ calc_mean_dist(lineup(null_permute('mpg'), mtcars, pos = 10), var = c('mpg', 'wt
 ## -----------------------------------------------------------------------------
 calc_diff(lineup(null_permute('mpg'), mtcars, pos = 10), var = c('mpg', 'wt'), met = 'reg_dist', dist.arg = NULL, pos = 10)
 
-## ---- fig.height = 3, fig.width = 3.5-----------------------------------------
+## ----fig.height = 3, fig.width = 3.5------------------------------------------
 opt.diff <- opt_bin_diff(lineup(null_permute('mpg'), mtcars, pos = 10), var = c('mpg', 'wt'), 2, 4, 2, 4, pos = 10, plot = TRUE)
 opt.diff$p
 
-## ---- fig.height = 10, fig.width = 11-----------------------------------------
+## ----fig.height = 10, fig.width = 11------------------------------------------
 lineup.dat <- lineup(null_permute('mpg'), mtcars, pos = 10)
 qplot(mpg, wt, data = lineup.dat, geom = 'point') + facet_wrap(~ .sample)
 
@@ -40,7 +40,7 @@ qplot(mpg, wt, data = lineup.dat, geom = 'point') + facet_wrap(~ .sample)
 #decrypt('...') 
 #[1] 'True data in position 10' # Use pos = 10
 
-## ---- message = FALSE---------------------------------------------------------
+## ----message = FALSE----------------------------------------------------------
 dist.vals <- distmet(lineup.dat, var = c('mpg', 'wt'),'reg_dist', null_permute('mpg'), pos = 10, repl = 100, dist.arg = NULL) 
 
 ## -----------------------------------------------------------------------------
@@ -50,9 +50,9 @@ head(dist.vals$closest)
 head(dist.vals$null_values)
 dist.vals$pos
 
-## ---- message = FALSE---------------------------------------------------------
+## ----message = FALSE----------------------------------------------------------
 dist.vals <- distmet(lineup.dat, var = c('mpg', 'wt'),'bin_dist', null_permute('mpg'), pos = 10, repl = 100, dist.arg = list(lineup.dat = lineup.dat, X.bin = 5, Y.bin = 5)) 
 
-## ---- fig.height = 5, fig.width = 5.5-----------------------------------------
+## ----fig.height = 5, fig.width = 5.5------------------------------------------
 distplot(dist.vals)
 

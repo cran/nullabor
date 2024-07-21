@@ -33,7 +33,7 @@ election <- electoral$election
 idx <- which(lpdata$.sample==pos)
 lpdata$Margin[idx] <- election$Margin
 
-## ---- warning=FALSE, message=FALSE--------------------------------------------
+## ----warning=FALSE, message=FALSE---------------------------------------------
 library(dplyr)
 lpdata <- lpdata %>% arrange(desc(Margin))
 lpdata <- lpdata %>% group_by(.sample, Democrat) %>% mutate(
@@ -41,7 +41,7 @@ lpdata <- lpdata %>% group_by(.sample, Democrat) %>% mutate(
 ) 
 lpdata$diff <-  with(lpdata, Margin*c(1,-1)[as.numeric(Democrat)+1])
 
-## ---- fig.height=7, fig.width=6, warning=FALSE, message=FALSE-----------------
+## ----fig.height=7, fig.width=6, warning=FALSE, message=FALSE------------------
 library(ggplot2)
 dframe <- lpdata
 dframe$diff <- with(dframe, diff+sign(diff)*0.075)
