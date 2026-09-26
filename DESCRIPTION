@@ -1,5 +1,5 @@
 Package: nullabor
-Version: 0.3.15
+Version: 0.3.16
 Description: Tools for visual inference. Generate null data sets
     and null plots using permutation and simulation. Calculate distance metrics
     for a lineup, and examine the distributions of metrics.
@@ -17,20 +17,22 @@ URL: https://github.com/dicook/nullabor
 BugReports: https://github.com/dicook/nullabor/issues
 Imports: MASS, moments, fpc, ggplot2, dplyr, purrr, tidyr, tibble,
         magrittr, stats
-Suggests: forecast, viridis, knitr
+Suggests: forecast, viridis, knitr, rmarkdown
 Depends: R (>= 4.1.0)
 LazyData: true
 Type: Package
 LazyLoad: false
 VignetteBuilder: knitr
-RoxygenNote: 7.3.2
 Encoding: UTF-8
+Config/roxygen2/version: 8.0.0
 NeedsCompilation: no
-Packaged: 2025-02-10 04:43:05 UTC; cookd
-Author: Hadley Wickham [aut, ctb] (<https://orcid.org/0000-0003-4757-117X>),
+Packaged: 2026-09-26 03:42:23 UTC; cookd
+Author: Hadley Wickham [aut, ctb] (ORCID:
+    <https://orcid.org/0000-0003-4757-117X>),
   Niladri Roy Chowdhury [aut, ctb],
-  Di Cook [aut, cre] (<https://orcid.org/0000-0002-3813-7155>),
-  Heike Hofmann [aut, ctb] (<https://orcid.org/0000-0001-6216-5183>),
-  Måns Thulin [aut, ctb] (<https://orcid.org/0000-0002-2756-3933>)
+  Di Cook [aut, cre] (ORCID: <https://orcid.org/0000-0002-3813-7155>),
+  Heike Hofmann [aut, ctb] (ORCID:
+    <https://orcid.org/0000-0001-6216-5183>),
+  Måns Thulin [aut, ctb] (ORCID: <https://orcid.org/0000-0002-2756-3933>)
 Repository: CRAN
-Date/Publication: 2025-02-10 05:40:02 UTC
+Date/Publication: 2026-09-26 13:30:02 UTC
